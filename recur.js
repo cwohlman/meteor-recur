@@ -89,7 +89,12 @@ function getInstancesFromChild(schedule, instance, next, end) {
 // };
 
 function parsePeriod(schedule, child, next, start, end, count) {
-  return next.clone().add(child.at, child.period);
+  if (_.isNumber(child.at))
+    return next.clone().add(child.at, child.period);
+  if (_.isDate(child.at)) {
+    var diff = moment(child.at).diff(moment(child.at).clone().startOf(schedule.period), child.period);
+    return next.clone().add(diff, child.period);
+  }
 }
 
 function getNext(next, start, end) {

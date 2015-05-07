@@ -142,6 +142,22 @@ _.each([
       , "2015-01-10T10:00:00"
     ]
   ]
+  , [
+    "Can use dates for 'at' value"
+    , {
+      period: 'week'
+      , interval: 1
+      , on: {
+        period: 'day'
+        , at: moment().weekday(1).toDate()
+      }
+    }
+    , "2015-01-01T00:00:00"
+    , "2015-01-06T00:00:00"
+    , [
+      "2015-01-05T00:00:00"
+    ]
+  ]
 ], function (args) {
   var name = args.shift();
   var schedule = args.shift();
