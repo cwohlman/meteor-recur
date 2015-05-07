@@ -110,6 +110,38 @@ _.each([
       "2015-01-01T10:00:00"
     ]
   ]
+  , [
+    "Twice a week, sunday and saturday"
+    , {
+      period: 'week'
+      , interval: 1
+      , on: [
+        {
+          period: 'day'
+          , at: 0
+          , on: {
+            period: 'minutes'
+            , at: 60 * 10
+          }
+        }
+        , {
+          period: 'day'
+          , at: 6
+          , on: {
+            period: 'minutes'
+            , at: 60 * 10
+          }
+        }
+      ]
+    }
+    , "2015-01-01T00:00:00"
+    , "2015-01-11T00:00:00"
+    , [
+      "2015-01-03T10:00:00"
+      , "2015-01-04T10:00:00"
+      , "2015-01-10T10:00:00"
+    ]
+  ]
 ], function (args) {
   var name = args.shift();
   var schedule = args.shift();
