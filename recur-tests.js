@@ -7,7 +7,7 @@ _.each([
       , interval: 1
       , on: {
         period: 'minutes'
-        , on: 60 * 10
+        , at: 60 * 10
       }
     }
     , "2015-01-01T00:00:00"
@@ -24,7 +24,7 @@ _.each([
       , offset: 1
       , on: {
         period: 'minutes'
-        , on: 60 * 10
+        , at: 60 * 10
       }
     }
     , "2015-01-01T00:00:00"
@@ -42,15 +42,15 @@ _.each([
       , on: [
         {
           period: 'minutes'
-          , on: 60 * 10
+          , at: 60 * 10
         }
         , {
           period: 'minutes'
-          , on: 60 * 14
+          , at: 60 * 14
         }
         , {
           period: 'minutes'
-          , on: 60 * 26
+          , at: 60 * 26
         }
       ]
     }
@@ -62,30 +62,54 @@ _.each([
       , "2015-01-03T02:00:00"
     ]
   ]
-  // , [
-  //   "Every other week on mondays and fridays at 10 am"
-  //   , {
-  //     period: 'week'
-  //     , interval: 2
-  //     , offset: 1
-  //     , on: [
-  //       {
-  //         period: 'day'
-  //         , on: 1
-  //         , at: {
-  //           period: 'minutes'
-  //           , on: 60 * 10
-  //         }
-  //       }
-  //     ]
-  //   }
-  //   , "2015-01-01T00:00:00"
-  //   , "2015-01-07T00:00:00"
-  //   , [
-  //     "2015-01-02T10:00:00"
-  //     , "2015-01-05T10:00:00"
-  //   ]
-  // ]
+  , [
+    "Every other week on mondays and fridays at 10 am"
+    , {
+      period: 'week'
+      , interval: 2
+      , offset: 0
+      , on: [
+        {
+          period: 'day'
+          , at: 1
+          , on: {
+            period: 'minutes'
+            , at: 60 * 10
+          }
+        }
+        , {
+          period: 'day'
+          , at: 5
+          , on: {
+            period: 'minutes'
+            , at: 60 * 10
+          }
+        }
+      ]
+    }
+    , "2014-12-28T00:00:00"
+    , "2015-01-12T00:00:00"
+    , [
+      "2014-12-29T10:00:00"
+      , "2015-01-02T10:00:00"
+    ]
+  ]
+  , [
+    "Every day at 10 am - starting at 9 am"
+    , {
+      period: 'day'
+      , interval: 1
+      , on: {
+        period: 'minutes'
+        , at: 60 * 10
+      }
+    }
+    , "2015-01-01T09:00:00"
+    , "2015-01-02T00:00:00"
+    , [
+      "2015-01-01T10:00:00"
+    ]
+  ]
 ], function (args) {
   var name = args.shift();
   var schedule = args.shift();

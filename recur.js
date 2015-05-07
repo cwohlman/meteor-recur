@@ -71,22 +71,122 @@ function getInstancesFromChild(schedule, instance, next, end) {
   return next.toDate();
 }
 
-function getInstances(schedule, start, end) {
-  var next = moment(start);
+// function getInstances(schedule, start, end) {
+//   var next = moment(start);
 
-  next = getNextFromOffset(schedule, next);
+//   next = getNextFromOffset(schedule, next);
 
+//   if (schedule.interval) {
+//     var results = [];
+//     while (next.toDate() < end) {
+//       results = results.concat(getInstancesFromChild(schedule, schedule.on, next.clone(), end));
+//       next.add(schedule.interval, schedule.period);
+//     }
+//     return results;
+//   } else {
+//     return getInstancesFromChild(schedule, schedule.on, next, end);
+//   }
+// };
+
+function parsePeriod(schedule, child, next, end, count) {
+  return next.clone().add(child.at, child.period);
+}
+
+function getNext(next, end) {
+  if (next.toDate() < end)
+    return [next.clone().toDate()];
+  else
+    return [];
+}
+
+function parseChild(schedule, child, next, end, count) {
+  if (child.interval)
+    return parseInterval(child, next, end, count);
+  if (child.at)
+    next = parsePeriod(schedule, child, next, end, count);
+  if (child.on)
+    return parseOn(child, next, end, count);
+  else
+    return getNext(next, end);
+}
+
+function parseOn(schedule, next, end, count) {
+  if (schedule.on) {
+    if (_.isArray(schedule.on)) {
+      var innerCount = 0;
+      return _.flatten(_.map(schedule.on, function (subSchedule) {
+        var results = parseChild(schedule, subSchedule, next.clone(), end, count - innerCount);
+        innerCount += results.length;
+        return results;
+      }));
+    }
+    if (_.isObject(schedule.on))
+      return parseChild(schedule, schedule.on, next.clone(), end, count);
+
+    return parseChild(schedule, schedule, next.clone(), end, count);
+  } else {
+    return getNext(next, end);
+  }
+}
+
+function parseAt(schedule, next, end, count) {
+  if (schedule.at) {
+    next = parsePeriod(schedule, schedule, next, end, count);
+  }
+  return parseOn(schedule, next, end, count);
+}
+
+function parseInterval(schedule, next, end, count) {
   if (schedule.interval) {
-    var results = [];
-    while (next.toDate() < end) {
-      results = results.concat(getInstancesFromChild(schedule, schedule.on, next.clone(), end));
-      next.add(schedule.interval, schedule.period);
+    if (!_.isNumber(schedule.interval))
+      throw new Error('expected a number');
+    var results = []
+      , localEnd
+      , localCount
+      ;
+
+    next = getNextFromOffset(schedule, next);
+    while (next.toDate() < end && (!count || count > results.length)) {
+      localEnd = moment.min(moment(end), next.clone().add(schedule.interval, schedule.period));
+      localCount = count - results.length;
+      results = results.concat(parseAt(schedule, next.clone(), end, count));
+      next = next.add(schedule.interval, schedule.period);
     }
     return results;
   } else {
-    return getInstancesFromChild(schedule, schedule.on, next, end);
+    return parseAt(schedule, next, end, count);
   }
-};
+}
+
+function getInstances() {
+  var args = _.toArray(arguments);
+  var schedule = args.shift();
+  var count, start, end;
+  while (args.length) {
+    var arg = args.shift();
+    if (_.isNumber(arg) && _.isUndefined(count))
+      count = arg;
+    else if (_.isDate(arg) && !start)
+      start = arg;
+    else if (_.isDate(arg) && !end)
+      end = arg;
+    else
+      throw new Error('too many or invalid arguments');
+  }
+  if (start && !end && !count) {
+    end = start;
+    start = null;
+  }
+  if (!start)
+    start = new Date();
+
+  if (!count && !end)
+    throw new Error('too few arguments');
+
+  var next = moment(start);
+
+  return parseInterval(schedule, next, end, count);
+}
 
 Recur = {
   getInstances: getInstances
