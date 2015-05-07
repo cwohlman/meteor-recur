@@ -27,7 +27,7 @@ function getNextFromOffset(schedule, next) {
     // e.g. if next is 15 minutes past midnight, and offset is 20, we want to
     // push next to 20 minutes past midnight.
     var mod = (diff % schedule.interval);
-    next = offset.add(mod ? (diff + (schedule.interval - mod)) : diff, schedule.period);
+    next = offset.add(diff - mod, schedule.period);
   }
 
   return next;
@@ -88,55 +88,57 @@ function getInstancesFromChild(schedule, instance, next, end) {
 //   }
 // };
 
-function parsePeriod(schedule, child, next, end, count) {
+function parsePeriod(schedule, child, next, start, end, count) {
   return next.clone().add(child.at, child.period);
 }
 
-function getNext(next, end) {
-  if (next.toDate() < end)
-    return [next.clone().toDate()];
+function getNext(next, start, end) {
+  next = next.clone().toDate();
+  if (next < end && next >= start)
+    return [next];
   else
     return [];
 }
 
-function parseChild(schedule, child, next, end, count) {
+function parseChild(schedule, child, next, start, end, count) {
+  next = next.clone();
   if (child.interval)
-    return parseInterval(child, next, end, count);
+    return parseInterval(child, next, start, end, count);
   if (child.at)
-    next = parsePeriod(schedule, child, next, end, count);
+    next = parsePeriod(schedule, child, next, start, end, count);
   if (child.on)
-    return parseOn(child, next, end, count);
+    return parseOn(child, next, start, end, count);
   else
-    return getNext(next, end);
+    return getNext(next, start, end);
 }
 
-function parseOn(schedule, next, end, count) {
+function parseOn(schedule, next, start, end, count) {
   if (schedule.on) {
     if (_.isArray(schedule.on)) {
       var innerCount = 0;
       return _.flatten(_.map(schedule.on, function (subSchedule) {
-        var results = parseChild(schedule, subSchedule, next.clone(), end, count - innerCount);
+        var results = parseChild(schedule, subSchedule, next, start, end, count - innerCount);
         innerCount += results.length;
         return results;
       }));
     }
     if (_.isObject(schedule.on))
-      return parseChild(schedule, schedule.on, next.clone(), end, count);
+      return parseChild(schedule, schedule.on, next, start, end, count);
 
-    return parseChild(schedule, schedule, next.clone(), end, count);
+    return parseChild(schedule, schedule, next, start, end, count);
   } else {
-    return getNext(next, end);
+    return getNext(next, start, end);
   }
 }
 
-function parseAt(schedule, next, end, count) {
+function parseAt(schedule, next, start, end, count) {
   if (schedule.at) {
-    next = parsePeriod(schedule, schedule, next, end, count);
+    next = parsePeriod(schedule, schedule, next, start, end, count);
   }
-  return parseOn(schedule, next, end, count);
+  return parseOn(schedule, next, start, end, count);
 }
 
-function parseInterval(schedule, next, end, count) {
+function parseInterval(schedule, next, start, end, count) {
   if (schedule.interval) {
     if (!_.isNumber(schedule.interval))
       throw new Error('expected a number');
@@ -147,14 +149,14 @@ function parseInterval(schedule, next, end, count) {
 
     next = getNextFromOffset(schedule, next);
     while (next.toDate() < end && (!count || count > results.length)) {
-      localEnd = moment.min(moment(end), next.clone().add(schedule.interval, schedule.period));
+      localEnd = moment.min(moment(end), next.clone().add(schedule.interval, schedule.period)).toDate();
       localCount = count - results.length;
-      results = results.concat(parseAt(schedule, next.clone(), end, count));
+      results = results.concat(parseAt(schedule, next.clone(), start, end, count));
       next = next.add(schedule.interval, schedule.period);
     }
     return results;
   } else {
-    return parseAt(schedule, next, end, count);
+    return parseAt(schedule, next, start, end, count);
   }
 }
 
@@ -185,7 +187,7 @@ function getInstances() {
 
   var next = moment(start);
 
-  return parseInterval(schedule, next, end, count);
+  return parseInterval(schedule, next, start, end, count);
 }
 
 Recur = {

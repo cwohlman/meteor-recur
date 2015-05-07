@@ -54,7 +54,7 @@ _.each([
         }
       ]
     }
-    , "2015-01-01T00:00:00"
+    , "2015-01-01T03:00:00"
     , "2015-01-04T00:00:00"
     , [
       "2015-01-02T10:00:00"
@@ -95,7 +95,7 @@ _.each([
     ]
   ]
   , [
-    "Every day at 10 am - starting at 9 am"
+    "When start is not zeroed out"
     , {
       period: 'day'
       , interval: 1
