@@ -81,8 +81,8 @@ _.each([
           period: 'day'
           , at: 5
           , on: {
-            period: 'minutes'
-            , at: 60 * 10
+            period: 'hours'
+            , at: 10
           }
         }
       ]
@@ -172,3 +172,14 @@ _.each([
   });
 });
 
+// Tinytest.add('Recur - parser - basic', function (test) {
+//   var parsedSchedule = Recur.parser().every(1, 'week').onthe(1, 'day');
+//   test.equal(parsedSchedule, {
+//     period: 'week'
+//     , interval: 1
+//     , on: {
+//       period: 'day'
+//       , at: 1
+//     }
+//   });
+// });
