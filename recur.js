@@ -127,7 +127,7 @@ function parseOn(schedule, next, start, end, count, shortcuts) {
     if (_.isArray(schedule.on)) {
       var innerCount = 0;
       return _.flatten(_.map(schedule.on, function (subSchedule) {
-        var results = parseChild(schedule, subSchedule, next, start, end, count, shortcuts - innerCount);
+        var results = parseChild(schedule, subSchedule, next, start, end, count - innerCount, shortcuts);
         innerCount += results.length;
         return results;
       }));
