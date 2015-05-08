@@ -158,6 +158,26 @@ _.each([
       "2015-01-05T00:00:00"
     ]
   ]
+  , [
+    "Can use an alias dictionary for shortcuts"
+    , [{
+          period: 'day'
+          , interval: 1
+          , on: {
+            period: 'minutes'
+            , at: 'morning'
+          }
+        }
+        , "2015-01-01T00:00:00"
+        , "2015-01-02T00:00:00"
+        , {
+          morning: 60 * 10
+        }
+      ]
+    , [
+      "2015-01-01T10:00:00"
+    ]
+  ]
 ], function (args) {
 
   var testName = args.shift();

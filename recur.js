@@ -88,13 +88,18 @@ function getInstancesFromChild(schedule, instance, next, end) {
 //   }
 // };
 
-function parsePeriod(schedule, child, next, start, end, count) {
-  if (_.isNumber(child.at))
-    return next.clone().add(child.at, child.period);
-  if (_.isDate(child.at)) {
-    var diff = moment(child.at).diff(moment(child.at).clone().startOf(schedule.period), child.period);
+function parsePeriod(schedule, child, next, start, end, count, shortcuts) {
+  var value = child.at;
+  if (_.isString(value) && shortcuts)
+    value = shortcuts[value] || value;
+
+  if (_.isNumber(value))
+    return next.clone().add(value, child.period);
+  if (_.isDate(value)) {
+    var diff = moment(value).diff(moment(value).clone().startOf(schedule.period), child.period);
     return next.clone().add(diff, child.period);
   }
+  throw new Error("Could not parse period");
 }
 
 function getNext(next, start, end) {
@@ -105,45 +110,45 @@ function getNext(next, start, end) {
     return [];
 }
 
-function parseChild(schedule, child, next, start, end, count) {
+function parseChild(schedule, child, next, start, end, count, shortcuts) {
   next = next.clone();
   if (child.interval)
-    return parseInterval(child, next, start, end, count);
+    return parseInterval(child, next, start, end, count, shortcuts);
   if (child.at)
-    next = parsePeriod(schedule, child, next, start, end, count);
+    next = parsePeriod(schedule, child, next, start, end, count, shortcuts);
   if (child.on)
-    return parseOn(child, next, start, end, count);
+    return parseOn(child, next, start, end, count, shortcuts);
   else
     return getNext(next, start, end);
 }
 
-function parseOn(schedule, next, start, end, count) {
+function parseOn(schedule, next, start, end, count, shortcuts) {
   if (schedule.on) {
     if (_.isArray(schedule.on)) {
       var innerCount = 0;
       return _.flatten(_.map(schedule.on, function (subSchedule) {
-        var results = parseChild(schedule, subSchedule, next, start, end, count - innerCount);
+        var results = parseChild(schedule, subSchedule, next, start, end, count, shortcuts - innerCount);
         innerCount += results.length;
         return results;
       }));
     }
     if (_.isObject(schedule.on))
-      return parseChild(schedule, schedule.on, next, start, end, count);
+      return parseChild(schedule, schedule.on, next, start, end, count, shortcuts);
 
-    return parseChild(schedule, schedule, next, start, end, count);
+    return parseChild(schedule, schedule, next, start, end, count, shortcuts);
   } else {
     return getNext(next, start, end);
   }
 }
 
-function parseAt(schedule, next, start, end, count) {
+function parseAt(schedule, next, start, end, count, shortcuts) {
   if (schedule.at) {
-    next = parsePeriod(schedule, schedule, next, start, end, count);
+    next = parsePeriod(schedule, schedule, next, start, end, count, shortcuts);
   }
-  return parseOn(schedule, next, start, end, count);
+  return parseOn(schedule, next, start, end, count, shortcuts);
 }
 
-function parseInterval(schedule, next, start, end, count) {
+function parseInterval(schedule, next, start, end, count, shortcuts) {
   if (schedule.interval) {
     if (!_.isNumber(schedule.interval))
       throw new Error('expected a number');
@@ -156,19 +161,19 @@ function parseInterval(schedule, next, start, end, count) {
     while (next.toDate() < end && (!count || count > results.length)) {
       localEnd = moment.min(moment(end), next.clone().add(schedule.interval, schedule.period)).toDate();
       localCount = count - results.length;
-      results = results.concat(parseAt(schedule, next.clone(), start, end, count));
+      results = results.concat(parseAt(schedule, next.clone(), start, end, count, shortcuts));
       next = next.add(schedule.interval, schedule.period);
     }
     return results;
   } else {
-    return parseAt(schedule, next, start, end, count);
+    return parseAt(schedule, next, start, end, count, shortcuts);
   }
 }
 
 function getInstances() {
   var args = _.toArray(arguments);
   var schedule = args.shift();
-  var count, start, end;
+  var count, start, end, shortcuts;
   while (args.length) {
     var arg = args.shift();
     if (_.isNumber(arg) && _.isUndefined(count))
@@ -177,6 +182,8 @@ function getInstances() {
       start = arg;
     else if (_.isDate(arg) && !end)
       end = arg;
+    else if (!_.isDate(arg) && _.isObject(arg) && !shortcuts)
+      shortcuts = arg;
     else
       throw new Error('too many or invalid arguments');
   }
@@ -192,7 +199,7 @@ function getInstances() {
 
   var next = moment(start);
 
-  return parseInterval(schedule, next, start, end, count);
+  return parseInterval(schedule, next, start, end, count, shortcuts);
 }
 
 Recur = {
