@@ -16,7 +16,7 @@ Package.onUse(function(api) {
   api.versionsFrom('1.1.0.2');
   api.use([
     'underscore'
-    , 'momentjs:moment'
+    , 'momentjs:moment@2.10.3'
   ]);
 
   api.addFiles('recur.js');
