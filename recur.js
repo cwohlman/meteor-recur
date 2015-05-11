@@ -10,7 +10,7 @@ function getNextFromOffset(schedule, next) {
   // the key though is that they each represent an offset from the unix epoch
   if (_.isNumber(schedule.offset)) {
     offset = zero().add(schedule.offset, schedule.period);
-  } else if (_.isDate(schedule.offset)) {
+  } else if (schedule.offset) {
     offset = moment(schedule.offset);
   } else if (schedule.interval) {
     offset = zero();

@@ -159,6 +159,40 @@ _.each([
     ]
   ]
   , [
+    "Can use dates for 'offset' value"
+    , [{
+          period: 'week'
+          , interval: 2
+          , offset: moment("2015-01-11T00:00:00").toDate()
+          , on: {
+            period: 'day'
+            , at: 1
+          }
+        }
+        , "2015-01-01T00:00:00"
+        , "2015-01-14T00:00:00"]
+    , [
+      "2015-01-12T00:00:00"
+    ]
+  ]
+  , [
+    "Can use dates for 'offset' value (take 2)"
+    , [{
+          period: 'week'
+          , interval: 2
+          , offset: moment("2015-01-04T00:00:00").toDate()
+          , on: {
+            period: 'day'
+            , at: 1
+          }
+        }
+        , "2015-01-01T00:00:00"
+        , "2015-01-14T00:00:00"]
+    , [
+      "2015-01-05T00:00:00"
+    ]
+  ]
+  , [
     "Can use an alias dictionary for shortcuts"
     , [{
           period: 'day'
