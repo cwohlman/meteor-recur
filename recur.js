@@ -174,11 +174,12 @@ function parseBetween(schedule, next, start, end, count, shortcuts) {
   if (schedule.between) {
     var scheduleStart = moment(schedule.between[0]);
     var scheduleEnd = moment(schedule.between[1]);
-    if (!scheduleStart.isValid() || !scheduleEnd.isValid())
-      throw new Error('Schedule between is invalid');
-
-    start = moment.max(moment(start), scheduleStart);
-    end = moment.min(moment(end), scheduleEnd);
+    
+    // XXX instead of checking for isValid, check for === null
+    if (scheduleStart.isValid())
+      start = moment.max(moment(start), scheduleStart);
+    if (scheduleEnd.isValid())
+      end = moment.min(moment(end), scheduleEnd);
   }
   return parseInterval(schedule, next, start, end, count, shortcuts);
 }
