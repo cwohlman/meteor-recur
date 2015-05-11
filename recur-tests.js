@@ -178,6 +178,21 @@ _.each([
       "2015-01-01T10:00:00"
     ]
   ]
+  , [
+    "Restricts results to between period"
+    , [
+      {
+        period: 'day'
+        , interval: 1
+        , between: [moment("2015-01-02T00:00:00").toDate(), moment("2015-01-03T00:00:00").toDate()]
+      }
+      , "2015-01-01T00:00:00"
+      , "2015-01-04T00:00:00"
+    ]
+    , [
+      "2015-01-02T00:00:00"
+    ]
+  ]
 ], function (args) {
 
   var testName = args.shift();

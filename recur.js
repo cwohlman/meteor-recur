@@ -113,7 +113,7 @@ function getNext(next, start, end) {
 function parseChild(schedule, child, next, start, end, count, shortcuts) {
   next = next.clone();
   if (child.interval)
-    return parseInterval(child, next, start, end, count, shortcuts);
+    return parseBetween(child, next, start, end, count, shortcuts);
   if (child.at)
     next = parsePeriod(schedule, child, next, start, end, count, shortcuts);
   if (child.on)
@@ -170,6 +170,19 @@ function parseInterval(schedule, next, start, end, count, shortcuts) {
   }
 }
 
+function parseBetween(schedule, next, start, end, count, shortcuts) {
+  if (schedule.between) {
+    var scheduleStart = moment(schedule.between[0]);
+    var scheduleEnd = moment(schedule.between[1]);
+    if (!scheduleStart.isValid() || !scheduleEnd.isValid())
+      throw new Error('Schedule between is invalid');
+
+    start = moment.max(moment(start), scheduleStart);
+    end = moment.min(moment(end), scheduleEnd);
+  }
+  return parseInterval(schedule, next, start, end, count, shortcuts);
+}
+
 function getInstances() {
   var args = _.toArray(arguments);
   var schedule = args.shift();
@@ -199,7 +212,7 @@ function getInstances() {
 
   var next = moment(start);
 
-  return parseInterval(schedule, next, start, end, count, shortcuts);
+  return parseBetween(schedule, next, start, end, count, shortcuts);
 }
 
 Recur = {
